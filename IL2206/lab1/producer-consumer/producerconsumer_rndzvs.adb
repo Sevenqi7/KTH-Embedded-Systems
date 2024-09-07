@@ -36,10 +36,25 @@ procedure ProducerConsumer_Rndzvs is
       loop
          select
 				-- => Complete Code: Service Append
+            when Count <= 3 =>
+               accept Append(I : in Integer) do
+                  B(In_Ptr) := I;
+                  In_Ptr := In_Ptr + 1;
+                  Count := Count + 1;
+                  --  Put_Line("Append: " & Index'Image(In_Ptr));
+               end Append;
          or
 				-- => Complete Code: Service Take
+            when Count > 0 =>
+               accept Take(I : out Integer) do
+                  I := B(Out_Ptr);
+                  Out_Ptr := Out_Ptr + 1;
+                  Count := Count - 1;
+                  --  Put_Line("Take: " & Index'Image(Out_Ptr));
+               end Take;
          or
 				-- => Termination
+            terminate;
          end select;
       end loop;
    end Buffer;
@@ -51,7 +66,7 @@ procedure ProducerConsumer_Rndzvs is
       for I in 1..N loop
 			
          -- => Complete code: Write to X
-
+         Buffer.Append(I);
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
          delay until Next;
@@ -65,6 +80,7 @@ procedure ProducerConsumer_Rndzvs is
       Next := Clock;
       for I in 1..N loop
          -- Complete Code: Read from X
+         Buffer.Take(X);
 
          Put_Line(Integer'Image(X));
          Next := Next + Milliseconds(Random(G));

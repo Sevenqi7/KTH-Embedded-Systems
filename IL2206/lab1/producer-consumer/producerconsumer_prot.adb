@@ -21,6 +21,7 @@ procedure ProducerConsumer_Prot is
    G : Generator;
 
    -- ==> Complete code: Use Buffer
+   buffer : CircularBuffer;
 
    task type Producer;
 
@@ -33,7 +34,9 @@ procedure ProducerConsumer_Prot is
       for I in 1..N loop
 			
          -- ==> Complete code: Write to Buffer
-			
+         buffer.Put(I);
+         Put_Line("Producer put" & Integer'Image(I) & " to buffer.");
+
          -- Next 'Release' in 50..250ms
          Next := Next + Milliseconds(Random(G));
          delay until Next;
@@ -47,7 +50,8 @@ procedure ProducerConsumer_Prot is
       Next := Clock;
       for I in 1..N loop
          -- Read from X
-			
+         buffer.Get(X);
+         Put_Line("Consumer get" & Integer'Image(I) & " from buffer.");
          -- ==> Complete code: Read from Buffer
 			
          Put_Line(Integer'Image(X));
