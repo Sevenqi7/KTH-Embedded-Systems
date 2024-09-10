@@ -15,6 +15,6 @@ quiet-all:
 	@make all > /dev/null 2>&1
 
 run: quiet-all
-	@taskset -c 0 $(BIN)
+	@sudo taskset -c 0 $(BIN)
 
 	
