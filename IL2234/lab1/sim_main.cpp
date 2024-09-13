@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
   VerilatedVcdC *tracep = new VerilatedVcdC;
   VerilatedContext *contextp = new VerilatedContext;
   contextp->traceEverOn(true);
-  contextp->randReset(5);
+  // contextp->randReset(5);
   contextp->commandArgs(argc, argv);
   Verilated::traceEverOn(true);
 

@@ -8,14 +8,14 @@ module ALU #(
     output logic [        2 : 0] ONZ
 );
 
-    logic op_add = (op == 3'b000);
-    logic op_sub = (op == 3'b001);
-    logic op_and = (op == 3'b010);
-    logic op_or = (op == 3'b011);
-    logic op_xor = (op == 3'b100);
-    logic op_inc = (op == 3'b101);
-    logic op_mova = (op == 3'b110);
-    logic op_movb = (op == 3'b111);
+    wire op_add = (op == 3'b000);
+    wire op_sub = (op == 3'b001);
+    wire op_and = (op == 3'b010);
+    wire op_or = (op == 3'b011);
+    wire op_xor = (op == 3'b100);
+    wire op_inc = (op == 3'b101);
+    wire op_mova = (op == 3'b110);
+    wire op_movb = (op == 3'b111);
 
     assign Y =  op_add  ? A + B :
                 op_sub  ? A - B :
@@ -27,16 +27,16 @@ module ALU #(
                 op_movb ? B :
                 0;    //never reach here
 
-    logic A_sign = A[width-1];
-    logic B_sign = B[width-1];
-    logic Y_sign = Y[width-1];
+    wire A_sign = A[width-1];
+    wire B_sign = B[width-1];
+    wire Y_sign = Y[width-1];
 
-    logic add_of = op_add && ((A_sign == B_sign) && (A_sign != Y_sign));
-    logic sub_of = op_sub && ((A_sign != B_sign) && (A_sign != Y_sign));
+    wire add_of = op_add && ((A_sign == B_sign) && (A_sign != Y_sign));
+    wire sub_of = op_sub && ((A_sign != B_sign) && (A_sign != Y_sign));
 
-    logic o_flag = add_of | sub_of;
-    logic n_flag = Y[width-1];
-    logic z_flag = !|Y;
+    wire o_flag = add_of | sub_of;
+    wire n_flag = Y_sign;
+    wire z_flag = (Y == 0);
 
     assign ONZ = {o_flag, n_flag, z_flag};
 
