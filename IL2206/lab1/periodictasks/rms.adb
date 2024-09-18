@@ -10,7 +10,7 @@ procedure PeriodicTasks_Priority is
    package Int_IO is new Ada.Text_IO.Integer_IO(Integer);
 	
    Start : Time; -- Start Time of the System
-	Calibrator: constant Integer := 850; -- Calibration for correct timing
+	Calibrator: constant Integer := 3500; -- Calibration for correct timing
 	                                     -- ==> Change parameter for your architecture!
 	Warm_Up_Time: constant Integer := 100; -- Warmup time in milliseconds
 	
@@ -107,10 +107,10 @@ procedure PeriodicTasks_Priority is
 	--                                                     -- Period 2000, 
 	--                                                     -- Computation Time: 1000 (if correctly calibrated) 
 	--                                                     -- Relative Deadline: 2000
+	-- RMS: the more time the task needs, the lower the priority it gets.
 	Task_1 : T(1, 20, Warm_Up_Time, 300, 100, 300);
 	Task_2 : T(2, 15, Warm_Up_Time, 400, 100, 400);
 	Task_3 : T(3, 10, Warm_Up_Time, 600, 100, 600);
-
 
 -- Main Program: Terminates after measuring start time	
 begin
