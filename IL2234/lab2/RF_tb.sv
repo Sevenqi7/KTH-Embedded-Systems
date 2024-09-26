@@ -1,0 +1,148 @@
+module RF_tb;
+    parameter N = 8, addr_wd = 2;
+
+    logic clk, rst_n, selA, selB, wen;
+    logic [addr_wd-1:0] waddr, raddrA, raddrB;
+    logic [1:0] selSrc;
+    logic [N-1:0] A, B, C;
+    logic [N-1:0] dest1A, dest1B, dest2A, dest2B;
+
+    RF #(
+        .N(N),
+        .addressBits(addr_wd)
+    ) regfile (
+        .clk(clk),
+        .rst_n(rst_n),
+        .selectDestinationA(selA),
+        .selectDestinationB(selB),
+        .selectSource(selSrc),
+        .writeAddress(waddr),
+        .write_en(wen),
+        .readAddressA(raddrA),
+        .readAddressB(raddrB),
+        .A(A),
+        .B(B),
+        .C(C),
+        .destination1A(dest1A),
+        .destination1B(dest1B),
+        .destination2A(dest2A),
+        .destination2B(dest2B)
+    );
+
+    // Generate clock
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    // Write data into the regfile by given address and source
+    task regWrite(input [addr_wd - 1:0] addr, input [N-1:0] data, input [1:0] src);
+        waddr = addr;
+        wen = 1'b1;
+        selSrc = src;
+        case (src)
+            2'b01: A = data;
+            2'b10: B = data;
+            2'b11: C = data;
+            default: begin
+                $display("Error: Wrong sources of writing data\n");
+                $stop;
+            end
+        endcase
+        // wait 1 clock cycle
+        @(posedge clk);
+        wen = 1'b0;
+    endtask
+
+    // Read data from random channel of register files by the given address
+    task automatic regRead(input [addr_wd - 1:0] addr, output [N-1:0] data);
+        logic [1:0] randval = $urandom() % 4;
+        raddrA = addr;
+        raddrB = addr;
+        selA   = randval[0];
+        selB   = randval[0];
+
+        // wait 1 cycle
+        @(posedge clk);
+
+        case (randval)
+            2'b00:   data = dest1A;
+            2'b01:   data = dest2A;
+            2'b10:   data = dest1B;
+            2'b11:   data = dest2B;
+            default: data = 0;
+        endcase
+    endtask
+
+    initial begin
+        logic [N-1:0] random_data;
+        logic [1:0] random_src;
+        logic [N-1:0] rdata;
+        integer i = 0;
+        $display("Simulation starts.");
+
+        //1. initialisation
+        rst_n = 1'b1;
+        selA = 0;
+        selB = 0;
+        selSrc = 0;
+        A = 0;
+        B = 0;
+        C = 0;
+        raddrA = 0;
+        raddrB = 0;
+        waddr = 0;
+        wen = 0;
+
+        random_data = 0;
+        random_src = 0;
+        @(posedge clk);
+        //2. verification of read and write functionality 
+
+        for (i = 0; i < 2 ** addr_wd; i++) begin
+            // write random number with random port into register
+            random_data = $random();
+            random_src  = $urandom() % 3 + 1;
+            regWrite(i[addr_wd-1:0], random_data, random_src);
+            // read the result from regfile and check whether it's equal to what we wrote in before
+            regRead(i[addr_wd-1:0], rdata);
+            @(posedge clk);
+            if (rdata != random_data) begin
+                $display("Error: read wrong data:0x%x from register after writing in 0x%x.\n",
+                         rdata, random_data);
+                @(posedge clk);
+                $stop;
+            end
+        end
+
+        //3. verification of reset funcationality
+        rst_n = 1'b0;
+        @(posedge clk);
+        rst_n = 1'b1;
+        // Test GPR[0]
+        regRead(2'b0, rdata);
+        if (rdata != 0) begin
+            $display("Error: GPR[0] is not set to 0 after reset");
+            $stop;
+        end
+
+        // Test GPR[1]
+        regRead(2'b1, rdata);
+        if (rdata != 0) begin
+            $display("Error: GPR[1] is not set to 1 after reset");
+            $stop;
+        end
+
+        // Test all other registers
+        for (i = 0; i < 2 ** addr_wd; i++) begin
+            regRead(i[addr_wd-1:0], rdata);
+            if (rdata != 0) begin
+                $display("Error: GPR[%d] is not set to 0 after reset", i);
+            end
+        end
+
+
+        $display("Test Pass! Simulation end.\n");
+        $finish;
+    end
+endmodule
